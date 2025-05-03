@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>AI Workflow Optimizer</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    button { margin-right: 10px; padding: 8px 16px; }
+    ul { margin-top: 10px; }
+    li { margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+  <h1>AI Workflow Optimizer</h1>
+  <button id="start" type="button">Start Logging</button>
+  <button id="stopAnalyze" type="button">Stop &amp; Analyze</button>
+
+
+  <h2>Suggestions</h2>
+  <ul id="suggestions">
+    <li><em>No suggestions yet.</em></li>
+  </ul>
+
+  <script>
+    // first, import axios and grab our UI elements
+    const axios    = require('axios');
+    const startBtn = document.getElementById('start');
+    const stopBtn  = document.getElementById('stopAnalyze');
+    const list     = document.getElementById('suggestions');
+
+    // start logging
+    startBtn.onclick = async () => {
+      try {
+        await axios.post('http://127.0.0.1:8000/start');
+        alert('Logging started');
+      } catch (err) {
+        console.error(err);
+        alert('Error starting logger');
+      }
+    };
+
+    // stop logging & analyze in one shot
+    stopBtn.onclick = async () => {
+      try {
+        const res = await axios.post('http://127.0.0.1:8000/stop_and_analyze');
+        const suggestions = res.data.suggestions || [];
+        list.innerHTML = '';
+        if (!suggestions.length) {
+          const li = document.createElement('li');
+          li.textContent = 'No patterns found (try logging longer)';
+          list.appendChild(li);
+        } else {
+          suggestions.forEach((s, i) => {
+            const li = document.createElement('li');
+            li.textContent = s.message + ' ';
+            const btn = document.createElement('button');
+            btn.textContent = 'Run';
+            btn.onclick = async () => {
+              try {
+                await axios.post(
+                  'http://127.0.0.1:8000/replay',
+                  null,
+                  { params: { index: i } }
+                );
+                alert(`Replayed: ${s.message}`);
+              } catch (e) {
+                console.error(e);
+                alert('Replay failed');
+              }
+            };
+            li.appendChild(btn);
+            list.appendChild(li);
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Error stopping or analyzing');
+      }
+    };
+  </script>
+</body>
+</html>
