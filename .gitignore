@@ -1,9 +1,18 @@
 # Python
-venv/
 __pycache__/
 *.py[cod]
-*.sqlite
+*.egg-info/
+venv/
+.venv/
+backend/.venv/
+
+# Node
+node_modules/
+
 # Logs
 logs/
-# Environment
-.env
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
